@@ -5,7 +5,9 @@ package libp2p
 import (
 	"crypto/rand"
 
+	none "github.com/libp2p/go-libp2p-core/compression/none"
 	crypto "github.com/libp2p/go-libp2p-core/crypto"
+	gzip "github.com/libp2p/go-libp2p-gzip"
 	mplex "github.com/libp2p/go-libp2p-mplex"
 	noise "github.com/libp2p/go-libp2p-noise"
 	pstoremem "github.com/libp2p/go-libp2p-peerstore/pstoremem"
@@ -23,6 +25,15 @@ import (
 var DefaultSecurity = ChainOptions(
 	Security(noise.ID, noise.New),
 	Security(tls.ID, tls.New),
+)
+
+// DefaultCompression is the default compression option.
+//
+// Useful when you want to extend, but not replace, the supported transport
+// compression protocols.
+var DefaultCompression = ChainOptions(
+	Compression(gzip.ID, gzip.New),
+	Compression(none.ID, none.New),
 )
 
 // DefaultMuxers configures libp2p to use the stream connection multiplexers.

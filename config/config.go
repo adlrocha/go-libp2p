@@ -66,11 +66,13 @@ type Config struct {
 
 	PeerKey crypto.PrivKey
 
-	Transports         []TptC
-	Muxers             []MsMuxC
-	SecurityTransports []MsSecC
-	Insecure           bool
-	PSK                pnet.PSK
+	Transports            []TptC
+	Muxers                []MsMuxC
+	SecurityTransports    []MsSecC
+	CompressionTransports []MsCompC
+	NoCompress            bool
+	Insecure              bool
+	PSK                   pnet.PSK
 
 	RelayCustom bool
 	Relay       bool
@@ -144,6 +146,14 @@ func (cfg *Config) addTransports(ctx context.Context, h host.Host) (err error) {
 		upgrader.Secure = makeInsecureTransport(h.ID(), cfg.PeerKey)
 	} else {
 		upgrader.Secure, err = makeSecurityTransport(h, cfg.SecurityTransports)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Only upgrade if it has compression.
+	if !cfg.NoCompress {
+		upgrader.Compression, err = makeCompressionTransport(h, cfg.CompressionTransports)
 		if err != nil {
 			return err
 		}
@@ -302,14 +312,15 @@ func (cfg *Config) NewNode(ctx context.Context) (host.Host, error) {
 		// Specifically, don't setup things like autorelay, listeners,
 		// identify, etc.
 		autoNatCfg := Config{
-			Transports:         cfg.Transports,
-			Muxers:             cfg.Muxers,
-			SecurityTransports: cfg.SecurityTransports,
-			Insecure:           cfg.Insecure,
-			PSK:                cfg.PSK,
-			ConnectionGater:    cfg.ConnectionGater,
-			Reporter:           cfg.Reporter,
-			PeerKey:            autonatPrivKey,
+			Transports:            cfg.Transports,
+			Muxers:                cfg.Muxers,
+			SecurityTransports:    cfg.SecurityTransports,
+			CompressionTransports: cfg.CompressionTransports,
+			Insecure:              cfg.Insecure,
+			PSK:                   cfg.PSK,
+			ConnectionGater:       cfg.ConnectionGater,
+			Reporter:              cfg.Reporter,
+			PeerKey:               autonatPrivKey,
 
 			Peerstore: pstoremem.NewPeerstore(),
 		}

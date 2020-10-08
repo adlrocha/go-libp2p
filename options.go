@@ -48,6 +48,33 @@ func ListenAddrs(addrs ...ma.Multiaddr) Option {
 	}
 }
 
+// Compression configures libp2p to use the given compressed transport (or transport
+// constructor).
+func Compression(name string, tpt interface{}) Option {
+	stpt, err := config.CompressionConstructor(tpt)
+	err = traceError(err, 1)
+	return func(cfg *Config) error {
+		if err != nil {
+			return err
+		}
+		if cfg.NoCompress {
+			return fmt.Errorf("cannot use compression with the NoCompression libp2p configuration")
+		}
+		cfg.CompressionTransports = append(cfg.CompressionTransports, config.MsCompC{CompC: stpt, ID: name})
+		return nil
+	}
+}
+
+// NoCompression is an option that completely disables all transport security.
+// It's incompatible with all other transport security protocols.
+var NoCompression Option = func(cfg *Config) error {
+	if len(cfg.CompressionTransports) > 0 {
+		return fmt.Errorf("cannot use compression with the NoCompression libp2p configuration")
+	}
+	cfg.NoCompress = true
+	return nil
+}
+
 // Security configures libp2p to use the given security transport (or transport
 // constructor).
 //
