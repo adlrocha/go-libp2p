@@ -115,6 +115,10 @@ var defaults = []struct {
 		opt:      DefaultSecurity,
 	},
 	{
+		fallback: func(cfg *Config) bool { return !cfg.NoCompress && cfg.CompressionTransports == nil },
+		opt:      DefaultCompression,
+	},
+	{
 		fallback: func(cfg *Config) bool { return cfg.PeerKey == nil },
 		opt:      RandomIdentity,
 	},
